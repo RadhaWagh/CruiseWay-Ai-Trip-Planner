@@ -42,9 +42,9 @@ function Features() {
         Everything you need to plan your perfect trip, powered by Artificial Intelligence.
       </p>
 
-      <div className="mt-16">
+      <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {features.map((feature) => (
-        <div className="max-w-md mx-auto bg-gray-800 rounded-2xl p-8 text-center hover:scale-105 hover:bg-gray-700 transition duration-300 cursor-pointer">
+        <div className=" bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-lg p-8 text-center hover:scale-105 hover:bg-gray-700 transition duration-300 cursor-pointer h-full">
 
           <div className="w-16 h-16 mx-auto rounded-full bg-blue-600 flex items-center justify-center text-3xl mb-6">
             {feature.icon}
