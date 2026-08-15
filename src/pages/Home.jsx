@@ -4,6 +4,7 @@ import Features from "../components/home/Features";
 import PopularDestinations from "../components/home/PopularDestinations";
 import HowItWorks from "../components/home/HowItWorks";
 import Testimonals from "../components/home/Testimonals";
+import Footer from "../components/common/Footer";
 
 function Home() {
   return (
@@ -14,6 +15,7 @@ function Home() {
       <PopularDestinations />
       <HowItWorks />
       <Testimonals />
+      <Footer />
     </div>
   );
 }
