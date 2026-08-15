@@ -3,6 +3,7 @@ import Hero from "../components/home/Hero"
 import Features from "../components/home/Features";
 import PopularDestinations from "../components/home/PopularDestinations";
 import HowItWorks from "../components/home/HowItWorks";
+import Testimonals from "../components/home/Testimonals";
 
 function Home() {
   return (
@@ -12,6 +13,7 @@ function Home() {
       <Features />
       <PopularDestinations />
       <HowItWorks />
+      <Testimonals />
     </div>
   );
 }
