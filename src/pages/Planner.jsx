@@ -11,42 +11,64 @@ function Planner() {
   const [isLoading, setIsLoading] = useState(false);
   const [tripPlan, setTripPlan] = useState("");
 
-  const handleGenerateTrip = () => {
-    if (
-      !destination ||
-      !startDate ||
-      !endDate ||
-      !budget ||
-      !interests ||
-      !travelers
-    ) {
-      setError("Please fill in all the trip details.");
-      return;
-    }
+  const handleGenerateTrip = async () => {
+  if (
+    !destination ||
+    !startDate ||
+    !endDate ||
+    !budget ||
+    !interests ||
+    !travelers
+  ) {
+    setError("Please fill in all the trip details.");
+    return;
+  }
 
-    if (new Date(endDate) < new Date(startDate)) {
-      setError("End date must be after the start date.");
-      return;
-    }
+  if (new Date(endDate) < new Date(startDate)) {
+    setError("End date must be after the start date.");
+    return;
+  }
 
-    setError("");
-    setIsLoading(true);
+  setError("");
+  setIsLoading(true);
 
-    console.log({
-      destination,
-      startDate,
-      endDate,
-      budget,
-      interests,
-      travelers,
-    });
-
-    setTripPlan(
-      `Your personalized trip to ${destination} will be generated here.`
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/generate-trip",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          destination,
+          startDate,
+          endDate,
+          budget,
+          interests,
+          travelers: Number(travelers),
+        }),
+      }
     );
 
+    if (!response.ok) {
+      throw new Error("Failed to generate trip.");
+    }
+
+    const data = await response.json();
+
+    console.log("Backend response:", data);
+
+    setTripPlan(
+      `Trip request received successfully for ${data.trip.destination}.`
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    setError("Something went wrong. Please try again.");
+  } finally {
     setIsLoading(false);
-  };
+  }
+};
 
   return (
     <main className="min-h-screen bg-gray-950 py-24 px-6">
