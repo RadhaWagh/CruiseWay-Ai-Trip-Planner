@@ -9,7 +9,7 @@ function Planner() {
   const [travelers, setTravelers] = useState(1);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [tripPlan, setTripPlan] = useState("");
+  const [tripPlan, setTripPlan] = useState("null");
 
   const handleGenerateTrip = async () => {
   if (
@@ -59,9 +59,8 @@ function Planner() {
 
     console.log("Backend response:", data);
 
-    setTripPlan(
-      `Trip request received successfully for ${data.trip.destination}.`
-    );
+    setTripPlan(data.itinerary);
+
   } catch (error) {
     console.error("Error:", error);
     setError("Something went wrong. Please try again.");
@@ -205,17 +204,181 @@ function Planner() {
         </div>
 
         {/* Trip Plan Result */}
-        {tripPlan && (
-          <div className="mt-10 max-w-4xl mx-auto bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Your Trip Plan
-            </h2>
+{tripPlan && (
+  <div className="mt-10 max-w-5xl mx-auto space-y-6">
 
-            <p className="text-gray-300 leading-relaxed">
-              {tripPlan}
+    {/* Overview */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-3xl font-bold text-white mb-4">
+        🌴 Trip Overview
+      </h2>
+
+      <p className="text-gray-300 leading-relaxed">
+        {tripPlan.overview}
+      </p>
+    </div>
+
+    {/* Day-by-Day Itinerary */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-3xl font-bold text-white mb-6">
+        📅 Day-by-Day Itinerary
+      </h2>
+
+      <div className="space-y-6">
+        {tripPlan.days?.map((day) => (
+          <div
+            key={day.day}
+            className="bg-gray-800/70 border border-gray-700 rounded-xl p-6"
+          >
+            <p className="text-blue-400 font-semibold mb-1">
+              Day {day.day} • {day.date}
+            </p>
+
+            <h3 className="text-xl font-bold text-white mb-4">
+              {day.title}
+            </h3>
+
+            <ul className="space-y-3">
+              {day.activities?.map((activity, index) => (
+                <li
+                  key={index}
+                  className="text-gray-300 flex gap-3"
+                >
+                  <span className="text-blue-400">•</span>
+                  <span>{activity}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Recommended Places */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-2xl font-bold text-white mb-5">
+        📍 Recommended Places
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {tripPlan.places?.map((place, index) => (
+          <div
+            key={index}
+            className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-gray-300"
+          >
+            📍 {place}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Food */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-2xl font-bold text-white mb-5">
+        🍴 Food Recommendations
+      </h2>
+
+      <div className="space-y-3">
+        {tripPlan.food?.map((item, index) => (
+          <div
+            key={index}
+            className="text-gray-300 flex gap-3"
+          >
+            <span>🍽️</span>
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Activities */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-2xl font-bold text-white mb-5">
+        🎯 Activities
+      </h2>
+
+      <div className="space-y-3">
+        {tripPlan.activities?.map((activity, index) => (
+          <div
+            key={index}
+            className="text-gray-300 flex gap-3"
+          >
+            <span>✨</span>
+            <span>{activity}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Travel Tips */}
+    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+      <h2 className="text-2xl font-bold text-white mb-5">
+        💡 Travel Tips
+      </h2>
+
+      <div className="space-y-3">
+        {tripPlan.tips?.map((tip, index) => (
+          <div
+            key={index}
+            className="text-gray-300 flex gap-3"
+          >
+            <span>💡</span>
+            <span>{tip}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Budget */}
+    {tripPlan.budget && (
+      <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+        <h2 className="text-2xl font-bold text-white mb-6">
+          💰 Approximate Budget
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="bg-gray-800 rounded-xl p-5">
+            <p className="text-gray-400">Accommodation</p>
+            <p className="text-white font-semibold mt-2">
+              {tripPlan.budget.accommodation}
             </p>
           </div>
-        )}
+
+          <div className="bg-gray-800 rounded-xl p-5">
+            <p className="text-gray-400">Food</p>
+            <p className="text-white font-semibold mt-2">
+              {tripPlan.budget.food}
+            </p>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl p-5">
+            <p className="text-gray-400">Transport</p>
+            <p className="text-white font-semibold mt-2">
+              {tripPlan.budget.transport}
+            </p>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl p-5">
+            <p className="text-gray-400">Activities</p>
+            <p className="text-white font-semibold mt-2">
+              {tripPlan.budget.activities}
+            </p>
+          </div>
+
+          <div className="md:col-span-2 bg-blue-600/20 border border-blue-500/30 rounded-xl p-5">
+            <p className="text-blue-300">Estimated Total</p>
+            <p className="text-white text-xl font-bold mt-2">
+              {tripPlan.budget.total}
+            </p>
+          </div>
+
+        </div>
+      </div>
+    )}
+
+  </div>
+)}
 
       </div>
     </main>
