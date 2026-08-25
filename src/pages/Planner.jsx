@@ -9,65 +9,86 @@ function Planner() {
   const [travelers, setTravelers] = useState(1);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [tripPlan, setTripPlan] = useState("null");
+  const [tripPlan, setTripPlan] = useState(null);
 
   const handleGenerateTrip = async () => {
-  if (
-    !destination ||
-    !startDate ||
-    !endDate ||
-    !budget ||
-    !interests ||
-    !travelers
-  ) {
-    setError("Please fill in all the trip details.");
-    return;
-  }
-
-  if (new Date(endDate) < new Date(startDate)) {
-    setError("End date must be after the start date.");
-    return;
-  }
-
-  setError("");
-  setIsLoading(true);
-
-  try {
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/generate-trip",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          destination,
-          startDate,
-          endDate,
-          budget,
-          interests,
-          travelers: Number(travelers),
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to generate trip.");
+    if (
+      !destination ||
+      !startDate ||
+      !endDate ||
+      !budget ||
+      !interests ||
+      !travelers
+    ) {
+      setError("Please fill in all the trip details.");
+      return;
     }
 
-    const data = await response.json();
+    if (new Date(endDate) < new Date(startDate)) {
+      setError("End date must be after the start date.");
+      return;
+    }
 
-    console.log("Backend response:", data);
+    setError("");
+    setIsLoading(true);
 
-    setTripPlan(data.itinerary);
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:8000/api/generate-trip",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            destination,
+            startDate,
+            endDate,
+            budget,
+            interests,
+            travelers: Number(travelers),
+          }),
+        }
+      );
 
-  } catch (error) {
-    console.error("Error:", error);
-    setError("Something went wrong. Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+      if (!response.ok) {
+        let errorMessage = "Failed to generate your trip.";
+
+        try {
+          const errorData = await response.json();
+
+          if (errorData.detail) {
+            errorMessage = errorData.detail;
+          }
+        } catch {
+          // Keep the default error message
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      console.log("Backend response:", data);
+
+      setTripPlan(data.itinerary);
+    } catch (error) {
+      console.error("Trip generation error:", error);
+
+      if (error.message.includes("Failed to fetch")) {
+        setError(
+          "Unable to connect to CruiseWay's server. Please make sure the backend is running."
+        );
+      } else {
+        setError(
+          error.message || "Unable to generate your trip. Please try again."
+        );
+      }
+    }
+      finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gray-950 py-24 px-6">
@@ -190,195 +211,240 @@ function Planner() {
               {error}
             </p>
           )}
+          {/* Loading Message */}
+          {isLoading && (
+            <p className="text-gray-400 text-sm text-center mt-6">
+              ✨ CruiseWay is creating your personalized itinerary...
+            </p>
+          )}
 
           {/* Generate Button */}
           <button
-            type="button"
-            onClick={handleGenerateTrip}
-            disabled={isLoading}
-            className="w-full mt-8 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition duration-300"
-          >
-            {isLoading ? "Creating Your Trip..." : "✨ Generate My Trip"}
+          type="button"
+          onClick={handleGenerateTrip}
+          disabled={isLoading}
+          className="w-full mt-8 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition duration-300 flex items-center justify-center gap-3">
+          {isLoading ? (  
+            <>
+              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Creating Your Trip...
+            </>
+          ) : (
+            <>
+            ✨ Generate My Trip
+            </>
+          )}
           </button>
 
         </div>
 
         {/* Trip Plan Result */}
-{tripPlan && (
-  <div className="mt-10 max-w-5xl mx-auto space-y-6">
+        {tripPlan && (
+          <div className="mt-10 max-w-5xl mx-auto space-y-6">
 
-    {/* Overview */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-3xl font-bold text-white mb-4">
-        🌴 Trip Overview
-      </h2>
+            {/* Overview */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-3xl font-bold text-white mb-4">
+                🌴 Trip Overview
+              </h2>
 
-      <p className="text-gray-300 leading-relaxed">
-        {tripPlan.overview}
-      </p>
-    </div>
+              <p className="text-gray-300 leading-relaxed">
+                {tripPlan.overview}
+              </p>
+            </div>
 
-    {/* Day-by-Day Itinerary */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-3xl font-bold text-white mb-6">
-        📅 Day-by-Day Itinerary
-      </h2>
+            {/* Day-by-Day Itinerary */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-3xl font-bold text-white mb-6">
+                📅 Day-by-Day Itinerary
+              </h2>
 
-      <div className="space-y-6">
-        {tripPlan.days?.map((day) => (
-          <div
-            key={day.day}
-            className="bg-gray-800/70 border border-gray-700 rounded-xl p-6"
-          >
-            <p className="text-blue-400 font-semibold mb-1">
-              Day {day.day} • {day.date}
-            </p>
+              <div className="space-y-6">
+                {tripPlan.days?.map((day) => (
+                  <div
+                    key={day.day}
+                    className="bg-gray-800/70 border border-gray-700 rounded-2xl p-6 md:p-7 hover:border-blue-500/50 transition duration-300"
+                  >
+                    <p className="text-blue-400 font-semibold mb-2 uppercase tracking-wide text-sm">
+                      Day {day.day} • {day.date}
+                    </p>
 
-            <h3 className="text-xl font-bold text-white mb-4">
-              {day.title}
-            </h3>
+                    <h3 className="text-2xl font-bold text-white mb-5">
+                      {day.title}
+                    </h3>
 
-            <ul className="space-y-3">
-              {day.activities?.map((activity, index) => (
-                <li
-                  key={index}
-                  className="text-gray-300 flex gap-3"
-                >
-                  <span className="text-blue-400">•</span>
-                  <span>{activity}</span>
-                </li>
-              ))}
-            </ul>
+                    <ul className="space-y-3">
+                      {day.activities?.map((activity, index) => (
+                        <li
+                          key={index}
+                          className="text-gray-300 flex gap-3"
+                        >
+                          <span className="text-blue-400">•</span>
+                          <span>
+                            {activity.replace(/^[-•\s]+/, "")}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recommended Places */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-5">
+                📍 Recommended Places
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {tripPlan.places?.map((place, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-gray-300"
+                  >
+                    📍 {place}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Food */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-5">
+                🍴 Food Recommendations
+              </h2>
+
+              <div className="space-y-3">
+                {tripPlan.food?.map((item, index) => (
+                  <div
+                    key={index}
+                    className="text-gray-300 flex gap-3"
+                  >
+                    <span>🍽️</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Activities */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-5">
+                🎯 Activities
+              </h2>
+
+              <div className="space-y-3">
+                {tripPlan.activities?.map((activity, index) => (
+                  <div
+                    key={index}
+                    className="text-gray-300 flex gap-3"
+                  >
+                    <span>✨</span>
+                    <span>{activity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Travel Tips */}
+            <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+              <h2 className="text-2xl font-bold text-white mb-5">
+                💡 Travel Tips
+              </h2>
+
+              <div className="space-y-3">
+                {tripPlan.tips?.map((tip, index) => (
+                  <div
+                    key={index}
+                    className="text-gray-300 flex gap-3"
+                  >
+                    <span>💡</span>
+                    <span>{tip}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Budget */}
+            {tripPlan.budget && (
+              <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
+
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="text-3xl">
+                    💰
+                  </div>
+
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">
+                      Approximate Budget
+                    </h2>
+
+                    <p className="text-gray-400 text-sm mt-1">
+                      Estimated expenses for your trip
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  <div className="bg-gray-800/70 border border-gray-700 rounded-xl p-5">
+                    <p className="text-gray-400 text-sm">
+                      🏨 Accommodation
+                    </p>
+
+                    <p className="text-white font-semibold text-lg mt-2">
+                      {tripPlan.budget.accommodation}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/70 border border-gray-700 rounded-xl p-5">
+                    <p className="text-gray-400 text-sm">
+                      🍴 Food & Drinks
+                    </p>
+
+                    <p className="text-white font-semibold text-lg mt-2">
+                      {tripPlan.budget.food}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/70 border border-gray-700 rounded-xl p-5">
+                    <p className="text-gray-400 text-sm">
+                      🛵 Transport
+                    </p>
+
+                    <p className="text-white font-semibold text-lg mt-2">
+                      {tripPlan.budget.transport}
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-800/70 border border-gray-700 rounded-xl p-5">
+                    <p className="text-gray-400 text-sm">
+                      🎯 Activities
+                    </p>
+
+                    <p className="text-white font-semibold text-lg mt-2">
+                      {tripPlan.budget.activities}
+                    </p>
+                  </div>
+
+                </div>
+
+                <div className="mt-5 bg-blue-600/20 border border-blue-500/40 rounded-xl p-6">
+                  <p className="text-blue-300 text-sm font-medium">
+                    Estimated Total
+                  </p>
+
+                  <p className="text-white text-3xl font-bold mt-2">
+                    {tripPlan.budget.total}
+                  </p>
+                </div>
+
+              </div>
+            )}
+
           </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Recommended Places */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-2xl font-bold text-white mb-5">
-        📍 Recommended Places
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {tripPlan.places?.map((place, index) => (
-          <div
-            key={index}
-            className="bg-gray-800 border border-gray-700 rounded-xl p-4 text-gray-300"
-          >
-            📍 {place}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Food */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-2xl font-bold text-white mb-5">
-        🍴 Food Recommendations
-      </h2>
-
-      <div className="space-y-3">
-        {tripPlan.food?.map((item, index) => (
-          <div
-            key={index}
-            className="text-gray-300 flex gap-3"
-          >
-            <span>🍽️</span>
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Activities */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-2xl font-bold text-white mb-5">
-        🎯 Activities
-      </h2>
-
-      <div className="space-y-3">
-        {tripPlan.activities?.map((activity, index) => (
-          <div
-            key={index}
-            className="text-gray-300 flex gap-3"
-          >
-            <span>✨</span>
-            <span>{activity}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Travel Tips */}
-    <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-      <h2 className="text-2xl font-bold text-white mb-5">
-        💡 Travel Tips
-      </h2>
-
-      <div className="space-y-3">
-        {tripPlan.tips?.map((tip, index) => (
-          <div
-            key={index}
-            className="text-gray-300 flex gap-3"
-          >
-            <span>💡</span>
-            <span>{tip}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Budget */}
-    {tripPlan.budget && (
-      <div className="bg-gray-900/70 border border-gray-700 rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-white mb-6">
-          💰 Approximate Budget
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-          <div className="bg-gray-800 rounded-xl p-5">
-            <p className="text-gray-400">Accommodation</p>
-            <p className="text-white font-semibold mt-2">
-              {tripPlan.budget.accommodation}
-            </p>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-5">
-            <p className="text-gray-400">Food</p>
-            <p className="text-white font-semibold mt-2">
-              {tripPlan.budget.food}
-            </p>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-5">
-            <p className="text-gray-400">Transport</p>
-            <p className="text-white font-semibold mt-2">
-              {tripPlan.budget.transport}
-            </p>
-          </div>
-
-          <div className="bg-gray-800 rounded-xl p-5">
-            <p className="text-gray-400">Activities</p>
-            <p className="text-white font-semibold mt-2">
-              {tripPlan.budget.activities}
-            </p>
-          </div>
-
-          <div className="md:col-span-2 bg-blue-600/20 border border-blue-500/30 rounded-xl p-5">
-            <p className="text-blue-300">Estimated Total</p>
-            <p className="text-white text-xl font-bold mt-2">
-              {tripPlan.budget.total}
-            </p>
-          </div>
-
-        </div>
-      </div>
-    )}
-
-  </div>
-)}
+        )}
 
       </div>
     </main>
