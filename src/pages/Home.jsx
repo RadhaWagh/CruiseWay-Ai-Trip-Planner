@@ -1,4 +1,4 @@
-import Navbar from "../components/home/Navbar";
+import NavBar from "../components/home/NavBar";
 import Hero from "../components/home/Hero"
 import Features from "../components/home/Features";
 import PopularDestinations from "../components/home/PopularDestinations";
@@ -9,7 +9,7 @@ import Footer from "../components/common/Footer";
 function Home() {
   return (
     <div className="min-h-screen bg-gray-900">
-      <Navbar />
+      <NavBar />
       <Hero />
       <Features />
       <PopularDestinations />
