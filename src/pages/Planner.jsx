@@ -34,7 +34,7 @@ function Planner() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/api/generate-trip",
+        "https://cruiseway-ai-trip-planner.onrender.com/api/generate-trip",
         {
           method: "POST",
           headers: {
